@@ -104,6 +104,10 @@ export function Prompt(props: PromptProps) {
   const pasteStyleId = syntax().getStyleId("extmark.paste")!
   let promptPartTypeId: number
 
+  function countLines(text: string): number {
+    return (text.match(/\n/g)?.length ?? 0) + 1
+  }
+
   command.register(() => {
     return [
       {
@@ -143,6 +147,12 @@ export function Prompt(props: PromptProps) {
               mime: content.mime,
               content: content.data,
             })
+          } 
+          if (content?.mime.startsWith("text/")) {
+            const pastedText = content.data
+            const lineCount = countLines(pastedText)
+            pasteText(pastedText, `[Pasted ~${lineCount} lines]`)
+            return
           }
         },
       },
@@ -786,7 +796,7 @@ export function Prompt(props: PromptProps) {
                   } catch {}
                 }
 
-                const lineCount = (pastedContent.match(/\n/g)?.length ?? 0) + 1
+                const lineCount = countLines(pastedContent)
                 if (
                   (lineCount >= 3 || pastedContent.length > 150) &&
                   !sync.data.config.experimental?.disable_paste_summary
